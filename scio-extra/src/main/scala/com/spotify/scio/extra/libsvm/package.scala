@@ -86,7 +86,7 @@ package object libsvm {
           case (_, indices, _) =>
             indices.lastOption.getOrElse(0)
         }
-        .sum(Max.maxSemigroup, Coder[Int])
+        .sum(Max.maxSemigroup)
         .map(_ + 1)
     }
 
