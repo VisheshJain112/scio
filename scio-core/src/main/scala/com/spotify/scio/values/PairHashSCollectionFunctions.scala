@@ -37,10 +37,12 @@ class PairHashSCollectionFunctions[K, V](val self: SCollection[(K, V)]) {
    *
    * @group join
    */
-  def hashJoin[W: Coder](
+  def hashJoin[W](
     rhs: SCollection[(K, W)]
-  ): SCollection[(K, (V, W))] =
+  ): SCollection[(K, (V, W))] = {
+    implicit val wCoder = rhs.valueCoder
     hashJoin(rhs.asMultiMapSingletonSideInput)
+  }
 
   /**
    * Perform an inner join with a [[SideMap]].
@@ -105,7 +107,7 @@ class PairHashSCollectionFunctions[K, V](val self: SCollection[(K, V)]) {
    * @group join
    */
   @deprecated("Use SCollection[(K, V)]#hashLeftOuterJoin(pairSColl) instead.", "0.8.0")
-  def hashLeftJoin[W: Coder](
+  def hashLeftJoin[W](
     rhs: SCollection[(K, W)]
   ): SCollection[(K, (V, Option[W]))] =
     hashLeftOuterJoin(rhs)
@@ -122,10 +124,12 @@ class PairHashSCollectionFunctions[K, V](val self: SCollection[(K, V)]) {
    * @group join
    * @param rhs The tiny SCollection[(K, W)] treated as right side of the join.
    */
-  def hashLeftOuterJoin[W: Coder](
+  def hashLeftOuterJoin[W](
     rhs: SCollection[(K, W)]
-  ): SCollection[(K, (V, Option[W]))] =
+  ): SCollection[(K, (V, Option[W]))] = {
+    implicit val wCoder = rhs.valueCoder
     hashLeftOuterJoin(rhs.asMultiMapSingletonSideInput)
+  }
 
   /**
    * Perform a left outer join with a [[SideMap]].
@@ -179,10 +183,12 @@ class PairHashSCollectionFunctions[K, V](val self: SCollection[(K, V)]) {
    *
    * @group join
    */
-  def hashFullOuterJoin[W: Coder](
+  def hashFullOuterJoin[W](
     rhs: SCollection[(K, W)]
-  ): SCollection[(K, (Option[V], Option[W]))] =
+  ): SCollection[(K, (Option[V], Option[W]))] = {
+    implicit val wCoder = rhs.valueCoder
     hashFullOuterJoin(rhs.asMultiMapSingletonSideInput)
+  }
 
   /**
    * Perform a full outer join with a [[SideMap]].
@@ -324,9 +330,10 @@ class PairHashSCollectionFunctions[K, V](val self: SCollection[(K, V)]) {
   def toSideMap: SideMap[K, V] =
     SideMap[K, V](combineAsMapSideInput(self))
 
-  private def combineAsMapSideInput[W: Coder](
+  private def combineAsMapSideInput[W](
     rhs: SCollection[(K, W)]
-  ): SideInput[MMap[K, ArrayBuffer[W]]] =
+  ): SideInput[MMap[K, ArrayBuffer[W]]] = {
+    implicit val wCoder = rhs.valueCoder
     rhs
       .combine {
         case (k, v) =>
@@ -343,4 +350,5 @@ class PairHashSCollectionFunctions[K, V](val self: SCollection[(K, V)]) {
           left
       }
       .asSingletonSideInput(MMap.empty[K, ArrayBuffer[W]])
+  }
 }
